@@ -104,9 +104,9 @@ public class Cloudclient {
 
         client.publishDeviceState("Hello".getBytes());
 
-        TelemetryEvent event = new TelemetryEvent("blind open \'4/1\'".getBytes(), "/devices/" + dev_id + "/commands", 1);
+        TelemetryEvent event = new TelemetryEvent("blind open \'4/1\'".getBytes(), "/devices/" + dev_id, TelemetryEvent.QOS_AT_LEAST_ONCE);
         client.publishTelemetry(event);
 
-        client.
+
     }
 }

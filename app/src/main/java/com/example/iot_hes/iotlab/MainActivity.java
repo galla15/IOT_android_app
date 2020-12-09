@@ -200,15 +200,15 @@ public class MainActivity extends AppCompatActivity {
                 knxRequest.setBlind(b1);
                 Log.d(TAG, Percentage.getText().toString());*/
 
+                Cloudclient client;
+
                 try {
-                    Cloudclient client = new Cloudclient(getApplicationContext(), "knx-reg", "knx-dev");
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                } catch (InvalidKeySpecException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
+                    client = new Cloudclient(getApplicationContext(), "knx-reg", "knx-dev");
+                    client.send_cmd("KK");
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
                     e.printStackTrace();
                 }
+
             }
         });
 

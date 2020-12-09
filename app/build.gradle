@@ -3,6 +3,10 @@ apply plugin: 'com.android.application'
 allprojects {
     repositories {
         jcenter()
+
+        maven {
+            url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
+        }
     }
 }
 
@@ -42,5 +46,15 @@ dependencies {
     implementation ('com.google.android.things:cloud-iot-core:1.0.0') {
         exclude module: 'support-v4'
     }
-    //compileOnly 'com.google.android.things:androidthings:1.0'
+
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
+    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+
+    api 'io.jsonwebtoken:jjwt-api:0.11.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.11.2') {
+        exclude group: 'org.json', module: 'json' //provided by Android natively
+    }
+    // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
+    //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
 }

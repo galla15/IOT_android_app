@@ -8,6 +8,9 @@ import android.util.Log;
 import com.google.android.things.iotcore.ConnectionParams;
 import com.google.android.things.iotcore.IotCoreClient;
 import com.google.android.things.iotcore.TelemetryEvent;
+import com.google.cloud.pubsub.v1.Publisher;
+import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
+import com.google.pubsub.v1.PubsubMessage;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
@@ -115,6 +118,8 @@ public class Cloudclient {
     static MqttCallback mCallback;
     static long MINUTES_PER_HOUR = 60;
 
+    private Publisher publisher;
+
     /** Create a Cloud IoT Core JWT for the given project id, signed with the given RSA key. */
     private String createJwtRsa(Context context, String projectId)
             throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
@@ -128,12 +133,7 @@ public class Cloudclient {
                         .setExpiration(new Date(System.currentTimeMillis() + 3600000))
                         .setAudience(projectId);
 
-        /*byte[] keyBytes = Files.readAllBytes(Paths.get(privateKeyFile));
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");*/
-
         KeyPair keys = read_keys(context);
-
 
         return jwtBuilder.signWith(keys.getPrivate(), SignatureAlgorithm.RS256).compact();
     }
@@ -200,11 +200,11 @@ public class Cloudclient {
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
                 Log.d(TAG, "Message delivered");
-                try {
+                /*try {
                     mqttClient.disconnect();
                 } catch (MqttException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         });
 
@@ -224,32 +224,6 @@ public class Cloudclient {
         String private_key = read_InputStream(is);
         String passwd = createJwtRsa(context, project_id);
         connectOptions.setPassword(passwd.toCharArray());
-
-        /*Log.d(TAG, "Creating new client");
-        reg_id = registry_id;
-        dev_id = device_id;
-        key = read_keys(context);
-
-        Log.d(TAG, "Building connection params");
-        params = new ConnectionParams.Builder()
-                .setProjectId(project_id)
-                .setRegistry(reg_id, cloud_region)
-                .setDeviceId(dev_id)
-                .build();
-
-        Log.d(TAG, "Building iotcore client");
-        client = new IotCoreClient.Builder()
-                .setConnectionParams(params)
-                .setKeyPair(key)
-                .build();
-
-        client.connect();
-
-        client.publishDeviceState("Hello".getBytes());
-
-        TelemetryEvent event = new TelemetryEvent("blind open \'4/1\'".getBytes(), "/devices/" + dev_id, TelemetryEvent.QOS_AT_LEAST_ONCE);
-        client.publishTelemetry(event);*/
-
     }
 
     private IMqttToken connect()
@@ -294,13 +268,13 @@ public class Cloudclient {
                 //Im connected
                 try {
                     MqttMessage message = new MqttMessage();
-                    message.setPayload("Hello from android".getBytes(StandardCharsets.UTF_8.name()));
+                    message.setPayload("blind get 4/1".getBytes(StandardCharsets.UTF_8.name()));
                     message.setQos(0);
-                    String topic = getEventTopic();
+                    final String topic = "projects/smartbuilding-297507/topics/android_knx_commands";
                     mqttClient.publish(topic, message, null, new IMqttActionListener() {
                         @Override
                         public void onSuccess(IMqttToken asyncActionToken) {
-                            Log.d(TAG, "Publish success");
+                            Log.d(TAG, "Publish success to topic : " + topic);
                         }
 
                         @Override

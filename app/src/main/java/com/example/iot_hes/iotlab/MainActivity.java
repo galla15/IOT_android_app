@@ -2,7 +2,6 @@
 package com.example.iot_hes.iotlab;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -17,18 +16,10 @@ import android.widget.TextView;
 
 // import java.io.Console;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -101,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         Percentage     =  findViewById(R.id.Percentage);
         IncrButton     =  findViewById(R.id.IncrButton);
         DecrButton     =  findViewById(R.id.DecrButton);
-        LightButton    =  findViewById(R.id.LightButton);
+        LightButton    =  findViewById(R.id.LightButtonOn);
         StoreButton    =  findViewById(R.id.StoreButton);
         RadiatorButton =  findViewById(R.id.RadiatorButton);
 
@@ -199,15 +190,8 @@ public class MainActivity extends AppCompatActivity {
                 b1.setValue(Percentage.getText().toString());
                 knxRequest.setBlind(b1);
                 Log.d(TAG, Percentage.getText().toString());*/
-
-                Cloudclient client;
-
-                try {
-                    client = new Cloudclient(getApplicationContext(), "knx-reg", "knx-dev");
-                    client.send_cmd("KK");
-                } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
-                    e.printStackTrace();
-                }
+                PubSub knx = new PubSub(getApplicationContext(), "smartbuilding-297507");
+                knx.publish("knx_commands", "blind set 4/1 80");
 
             }
         });

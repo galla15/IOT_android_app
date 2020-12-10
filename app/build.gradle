@@ -57,4 +57,7 @@ dependencies {
     }
     // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
     //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
+    implementation ('com.google.cloud:google-cloud-pubsub:1.105.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 }

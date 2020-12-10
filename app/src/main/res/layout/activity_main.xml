@@ -85,28 +85,80 @@
 
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="2"
             android:gravity="center"
             android:orientation="vertical">
 
-            <Button
-                android:id="@+id/LightButton"
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:backgroundTint="?android:attr/textColorHighlight"
-                android:fontFamily="sans-serif-smallcaps"
-                android:text="Light"
-                android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                android:textSize="24sp"
-                android:textStyle="italic"
-                tools:layout_editor_absoluteX="148dp"
-                tools:layout_editor_absoluteY="289dp"
-                tools:textColor="@color/colorPrimaryDark" />
+                android:orientation="vertical">
 
+                <EditText
+                    android:id="@+id/editTextTextPersonName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:text="Light ctrl" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/LightButtonOn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:backgroundTint="?android:attr/textColorHighlight"
+                        android:fontFamily="sans-serif-smallcaps"
+                        android:text="ON"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                        android:textSize="24sp"
+                        android:textStyle="italic"
+                        tools:layout_editor_absoluteX="148dp"
+                        tools:layout_editor_absoluteY="289dp"
+                        tools:textColor="@color/colorPrimaryDark" />
+
+                    <Button
+                        android:id="@+id/LightButtonOff"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:backgroundTint="?android:attr/textColorHighlight"
+                        android:fontFamily="sans-serif-smallcaps"
+                        android:text="OFF"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="24sp"
+                        android:textStyle="italic" />
+
+                    <Button
+                        android:id="@+id/LightButtonSet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:backgroundTint="?android:attr/textColorHighlight"
+                        android:fontFamily="sans-serif-smallcaps"
+                        android:text="SET"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="24sp"
+                        android:textStyle="italic" />
+                    <Button
+                        android:id="@+id/LightButtonGet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <Button
                 android:id="@+id/StoreButton"

@@ -39,9 +39,18 @@ public class MainActivity extends AppCompatActivity {
     EditText Percentage;
     Button   IncrButton;
     Button   DecrButton;
-    Button   LightButton;
-    Button   StoreButton;
+
+    Button   LightButton_ON;
+    Button   LightButton_OFF;
+
+    Button   StoreButton_OPEN;
+    Button   StoreButton_Close;
+    Button   StoreButton_Set;
+    Button   StoreButton_Get;
+    EditText Store_Addr;
+
     Button   RadiatorButton;
+
 
     // In the "OnCreate" function below:
     // - TextView, EditText and Button elements are linked to their graphical parts (Done for you ;) )
@@ -92,9 +101,17 @@ public class MainActivity extends AppCompatActivity {
         Percentage     =  findViewById(R.id.Percentage);
         IncrButton     =  findViewById(R.id.IncrButton);
         DecrButton     =  findViewById(R.id.DecrButton);
-        LightButton    =  findViewById(R.id.LightButtonOn);
-        StoreButton    =  findViewById(R.id.StoreButton);
-        RadiatorButton =  findViewById(R.id.RadiatorButton);
+
+
+        LightButton_ON = findViewById(R.id.LightButtonOn);
+
+        StoreButton_OPEN = findViewById(R.id.StoreButtonOpen);
+        StoreButton_Close = findViewById(R.id.StoreButtonClose);
+        Store_Addr = findViewById(R.id.StoreAddrText);
+        StoreButton_Set = findViewById(R.id.StoreButtonSet);
+        StoreButton_Get = findViewById(R.id.StoreButtonGet);
+
+        RadiatorButton =  findViewById(R.id.RadiatorButtonGet);
 
         Flags.DISABLE_BATCH_SCANNING.set(true);
         Flags.DISABLE_HARDWARE_FILTERING.set(true);
@@ -134,9 +151,6 @@ public class MainActivity extends AppCompatActivity {
 
         beaconManager.setForegroundScanPeriod(2000, 1000);
 
-
-
-
         // Only accept input values between 0 and 100
         Percentage.setFilters(new InputFilter[]{new InputFilterMinMax("0", "100")});
 
@@ -165,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
         // ZWave Manager
         zwaveRequest = new ZWaveRequest(getApplicationContext(), "http://192.168.1.144:5000/", queue);
-        LightButton.setOnClickListener(new View.OnClickListener() {
+        LightButton_ON.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 hasClick = !hasClick;
                 if(hasClick)
@@ -180,33 +194,39 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        knxRequest = new KNXRequest(getApplicationContext(), URL+":5001/", queue);
-        StoreButton.setOnClickListener(new View.OnClickListener() {
+        knxRequest = new KNXRequest(getApplicationContext());
+        StoreButton_OPEN.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-
-               /* // TODO Send HTTP Request to command store
-                Blinds b1 = new Blinds("4/1");
-                b1.setValue(Percentage.getText().toString());
-                knxRequest.setBlind(b1);
-                Log.d(TAG, Percentage.getText().toString());*/
-                PubSub knx = new PubSub(getApplicationContext(), "smartbuilding-297507");
-                knx.publish("knx_commands", "blind set 4/1 80");
-
+                knxRequest.open_blinds(Store_Addr.getText().toString());
             }
         });
 
+        StoreButton_Close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                knxRequest.close_blinds(Store_Addr.getText().toString());
+            }
+        });
 
+        StoreButton_Set.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                knxRequest.set_blinds(Store_Addr.getText().toString(), Percentage.getText().toString());
+            }
+        });
+
+        StoreButton_Get.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                knxRequest.get_blinds(Store_Addr.getText().toString());
+            }
+        });
 
         RadiatorButton.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
 
-                // TODO Send HTTP Request to command radiator
-                Valve v1 = new Valve("4/1");
-                v1.setValue(Percentage.getText().toString());
-                knxRequest.setValve(v1);
-                Log.d(TAG, Percentage.getText().toString());
             }
         });
 

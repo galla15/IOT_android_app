@@ -11,44 +11,71 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.JsonRequest;
 import com.estimote.coresdk.repackaged.gson_v2_3_1.com.google.gson.JsonObject;
+import com.google.api.core.ApiService;
 
 import org.json.JSONObject;
 
 public class KNXRequest {
     private final String TAG = "KNXRequest";
+    private final String write_topic = "knx_commands";
+    private final String read_sub = "knx_data_sub";
+    private PubSub client;
 
-    private Context context;
-    private String baseURL;
-    private RequestQueue queue;
-
-    public KNXRequest(Context context, String url, RequestQueue queue)
+    public KNXRequest(Context context)
     {
-        this.context = context;
-        this.baseURL = url;
-        this.queue = queue;
+        client = new PubSub(context, context.getString(R.string.cloud_project_id));
+        client.subscribe(read_sub, (str) -> {
+            Log.d(TAG, str);
+            return 0;});
     }
 
-    public void setBlind(Blinds b)
+    public void sub_callback(String str)
     {
-        sendHttpRequest("blind/set", b.getJsonObj());
+        Log.d(TAG, str);
     }
 
-    public void setValve(Valve v) { sendHttpRequest("valve/set", v.getJsonObj()); }
-
-    private void sendHttpRequest(String path, JSONObject data)
+    public void open_blinds(String addr)
     {
-        String url = this.baseURL + path;
-
-        Log.d(TAG, url);
-        Log.d(TAG, data.toString());
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, data, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.e(TAG, response.toString());
-            }
-        },
-                null);
-        queue.add(jsonObjectRequest);
+        String payload = "blind open " + addr;
+        try {
+            client.publish(write_topic, payload);
+        } catch (InterruptedException e) {
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
     }
+
+    public void close_blinds(String addr)
+    {
+        String payload = "blind close " + addr;
+        try {
+            client.publish(write_topic, payload);
+        } catch (InterruptedException e) {
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
+    }
+
+    public void set_blinds(String addr, String value)
+    {
+        String payload = "blind set " + addr + " " + value;
+        try {
+            client.publish(write_topic, payload);
+        } catch (InterruptedException e) {
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
+    }
+
+    public void get_blinds(String addr)
+    {
+        String payload = "blind get " + addr;
+        try {
+            client.publish(write_topic, payload);
+        } catch (InterruptedException e) {
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
+    }
+
 }

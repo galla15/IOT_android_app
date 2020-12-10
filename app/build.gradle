@@ -11,6 +11,11 @@ allprojects {
 }
 
 android {
+
+    packagingOptions{
+        exclude 'META-INF/INDEX.LIST'
+    }
+
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.example.iot_hes.iotlab"
@@ -19,6 +24,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -43,21 +49,16 @@ dependencies {
 
     implementation 'com.android.volley:volley:1.1.1'
 
-    implementation ('com.google.android.things:cloud-iot-core:1.0.0') {
-        exclude module: 'support-v4'
-    }
-
-    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
-    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
-
-    api 'io.jsonwebtoken:jjwt-api:0.11.2'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
-    runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.11.2') {
-        exclude group: 'org.json', module: 'json' //provided by Android natively
-    }
     // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
     //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
     implementation ('com.google.cloud:google-cloud-pubsub:1.105.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+    implementation 'io.grpc:grpc-okhttp:1.28.0'
+
+    /*api 'io.jsonwebtoken:jjwt-api:0.11.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.11.2') {
+        exclude group: 'org.json', module: 'json' //provided by Android natively
+    }*/
 }

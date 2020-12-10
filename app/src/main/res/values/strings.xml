@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">IoTLab</string>
+    <string name="cloud_project_id">smartbuilding-297507</string>
 </resources>

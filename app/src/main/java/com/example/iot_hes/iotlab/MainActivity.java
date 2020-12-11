@@ -15,9 +15,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 // import java.io.Console;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +26,9 @@ import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
 import com.estimote.coresdk.recognition.packets.Beacon;
 import com.estimote.coresdk.service.BeaconManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "IoTLab";
@@ -43,13 +43,17 @@ public class MainActivity extends AppCompatActivity {
     Button   LightButton_ON;
     Button   LightButton_OFF;
 
-    Button   StoreButton_OPEN;
-    Button   StoreButton_Close;
-    Button   StoreButton_Set;
-    Button   StoreButton_Get;
+    Button StoreButton_OPEN;
+    Button StoreButton_Close;
+    Button StoreButton_Set;
+    Button StoreButton_Get;
     EditText Store_Addr;
+    TextView Store_Value;
 
-    Button   RadiatorButton;
+    Button RadiatorButton_Get;
+    Button RadiatorButton_Set;
+    EditText Radiator_Addr;
+    TextView Radiator_Value;
 
 
     // In the "OnCreate" function below:
@@ -110,8 +114,12 @@ public class MainActivity extends AppCompatActivity {
         Store_Addr = findViewById(R.id.StoreAddrText);
         StoreButton_Set = findViewById(R.id.StoreButtonSet);
         StoreButton_Get = findViewById(R.id.StoreButtonGet);
+        Store_Value = findViewById(R.id.StoreGetTextView);
 
-        RadiatorButton =  findViewById(R.id.RadiatorButtonGet);
+        RadiatorButton_Set =  findViewById(R.id.RadiatorButtonSet);
+        RadiatorButton_Get = findViewById(R.id.RadiatorButtonGet);
+        Radiator_Addr = findViewById(R.id.RadiatorAddrText);
+        Radiator_Value = findViewById(R.id.RadiatorGetTextView);
 
         Flags.DISABLE_BATCH_SCANNING.set(true);
         Flags.DISABLE_HARDWARE_FILTERING.set(true);
@@ -193,8 +201,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /***
+         * KNX Manager
+         */
+        knxRequest = new KNXRequest(getApplicationContext(), new EventHandler()
+        {
+            @Override
+            public void handleEvent(String msg) {
+                Log.d(TAG, msg);
+                int value = 0;
+                try {
+                    JSONObject obj = new JSONObject(msg);
+                    if(!obj.isNull("blind"))
+                    {
+                        value = obj.getInt("blind");
+                        Store_Value.setText(String.format("%d", value));
+                    }
+                    else if(!obj.isNull("valve"))
+                    {
+                        value = obj.getInt("valve");
+                        Radiator_Value.setText(String.format("%d", value));
+                    }
+                    else
+                    {
+                        Log.d(TAG, "Object not reconized : " + obj.toString());
+                    }
 
-        knxRequest = new KNXRequest(getApplicationContext());
+                } catch (JSONException e) {
+                    Log.d(TAG, "Failed to initialize json object : " + e.getMessage());
+                    e.printStackTrace();
+                }
+
+            }
+        });
         StoreButton_OPEN.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
@@ -223,10 +262,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RadiatorButton.setOnClickListener(new View.OnClickListener() {
-
+        /***
+         * Radiator Manager
+         */
+        RadiatorButton_Set.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                int value = Integer.parseInt(Percentage.getText().toString());
+                value = (int)(((float)value / 100) * 255);
+                knxRequest.set_radiator(Radiator_Addr.getText().toString(), String.valueOf(value));
+            }
+        });
 
+        RadiatorButton_Get.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                knxRequest.get_radiator(Store_Addr.getText().toString());
             }
         });
 

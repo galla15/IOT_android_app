@@ -33,7 +33,7 @@ public class PubSub implements MessageReceiver {
     private ServiceAccountCredentials pub_credentials;
     private Credentials sub_credentials;
     private final String TAG = "PubSub";
-    private Function<String, Void> sub_cb;
+    private EventHandler cb;
 
     private boolean setPubCredentials(Context context) {
         boolean result = true;
@@ -121,10 +121,10 @@ public class PubSub implements MessageReceiver {
                 MoreExecutors.directExecutor());
     }
 
-    public void subscribe(String topic, Function<String, Void> func)
+    public void subscribe(String topic, EventHandler sub_cb)
     {
         ProjectSubscriptionName sub_name = ProjectSubscriptionName.of(this.project_id, topic);
-        this.sub_cb = func;
+        this.cb = sub_cb;
 
         this.subscriber = Subscriber.newBuilder(sub_name, this)
                 .setCredentialsProvider(FixedCredentialsProvider.create(sub_credentials))
@@ -137,6 +137,6 @@ public class PubSub implements MessageReceiver {
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
         Log.d(TAG, "Received :" + message.getData().toStringUtf8());
         consumer.ack();
-        sub_cb.apply(message.getData().toStringUtf8());
+        cb.handleEvent(message.getData().toStringUtf8());
     }
 }

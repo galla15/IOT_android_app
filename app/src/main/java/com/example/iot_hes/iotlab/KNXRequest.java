@@ -21,17 +21,10 @@ public class KNXRequest {
     private final String read_sub = "knx_data_sub";
     private PubSub client;
 
-    public KNXRequest(Context context)
+    public KNXRequest(Context context, EventHandler cb)
     {
         client = new PubSub(context, context.getString(R.string.cloud_project_id));
-        client.subscribe(read_sub, (str) -> {
-            Log.d(TAG, str);
-            return 0;});
-    }
-
-    public void sub_callback(String str)
-    {
-        Log.d(TAG, str);
+        client.subscribe(read_sub, cb);
     }
 
     public void open_blinds(String addr)
@@ -78,4 +71,25 @@ public class KNXRequest {
         }
     }
 
+    public void set_radiator(String addr, String value)
+    {
+        String payload = "valve set " + addr + " " + value;
+        try {
+            client.publish(write_topic, payload);
+        }catch (InterruptedException e){
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
+    }
+
+    public void get_radiator(String addr)
+    {
+        String payload = "valve get " + addr;
+        try {
+            client.publish(write_topic, payload);
+        } catch (InterruptedException e) {
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
+    }
 }

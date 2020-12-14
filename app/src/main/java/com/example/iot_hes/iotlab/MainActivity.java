@@ -13,9 +13,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 // import java.io.Console;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import com.android.volley.RequestQueue;
@@ -25,6 +28,7 @@ import com.estimote.coresdk.common.config.Flags;
 import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
 import com.estimote.coresdk.recognition.packets.Beacon;
+import com.estimote.coresdk.repackaged.gson_v2_3_1.com.google.gson.JsonObject;
 import com.estimote.coresdk.service.BeaconManager;
 
 import org.json.JSONException;
@@ -40,9 +44,18 @@ public class MainActivity extends AppCompatActivity {
     Button   IncrButton;
     Button   DecrButton;
 
+    //ZWave
     Button   LightButton_ON;
     Button   LightButton_OFF;
+    Button Network_Add;
+    Button Network_Remove;
+    Button Network_Reset;
+    TextView Temperature_Text;
+    TextView Humidity_Text;
+    TextView Luminance_Text;
+    TextView Motion_Text;
 
+    //KNX
     Button StoreButton_OPEN;
     Button StoreButton_Close;
     Button StoreButton_Set;
@@ -81,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
     // KNX Manager
     private KNXRequest knxRequest;
 
+    private ProgressDialog progressDialog;
+    private Toast toast;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -108,6 +124,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         LightButton_ON = findViewById(R.id.LightButtonOn);
+        Network_Add = findViewById(R.id.ZwaveButtonAdd);
+        Network_Remove = findViewById(R.id.ZwaveButtonRemove);
+        Network_Reset = findViewById(R.id.ZwaveButtonReset);
+        Temperature_Text = findViewById(R.id.temperatureText);
+        Humidity_Text = findViewById(R.id.humidityText);
+        Luminance_Text = findViewById(R.id.luminanceText);
+        Motion_Text = findViewById(R.id.motionText);
 
         StoreButton_OPEN = findViewById(R.id.StoreButtonOpen);
         StoreButton_Close = findViewById(R.id.StoreButtonClose);
@@ -120,6 +143,8 @@ public class MainActivity extends AppCompatActivity {
         RadiatorButton_Get = findViewById(R.id.RadiatorButtonGet);
         Radiator_Addr = findViewById(R.id.RadiatorAddrText);
         Radiator_Value = findViewById(R.id.RadiatorGetTextView);
+
+        toast = Toast.makeText(getApplicationContext(), "Yo", Toast.LENGTH_LONG);
 
         Flags.DISABLE_BATCH_SCANNING.set(true);
         Flags.DISABLE_HARDWARE_FILTERING.set(true);
@@ -181,23 +206,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "Dec: "+String.format("%d",number));
                     Percentage.setText(String.format("%d",number));
                 }
-            }
-        });
-
-
-        // ZWave Manager
-        zwaveRequest = new ZWaveRequest(getApplicationContext(), "http://192.168.1.144:5000/", queue);
-        LightButton_ON.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                hasClick = !hasClick;
-                if(hasClick)
-                {
-                    zwaveRequest.setOnAllLight("99");
-                }
-                else {
-                    zwaveRequest.setOnAllLight("0");
-                }
-                Log.d(TAG, Percentage.getText().toString());
             }
         });
 
@@ -280,6 +288,93 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        /***
+         * Z-Wave
+         */
+        zwaveRequest = new ZWaveRequest(getApplicationContext(), new EventHandler() {
+            @Override
+            public void handleEvent(String msg) {
+                Log.d(TAG, msg);
+                try{
+                    JSONObject obj = new JSONObject(msg);
+                    if(!obj.isNull("cmd"))
+                    {
+                        progressDialog.stop();
+                        switch (obj.getString("cmd"))
+                        {
+                            case "Add":
+                                toast.setText("Node added : " + obj.getString("Result"));
+                                break;
+                            case "Remove":
+                                toast.setText("Node remove : " + obj.getString("Result"));
+                                break;
+                            case "Reset":
+                                toast.setText("Network Reset : " + obj.getString("Result"));
+                                break;
+                            default:
+                                toast.setText("Unknown command : " + obj.getString("cmd"));
+                                break;
+                        }
+
+                        toast.show();
+                    }
+                    else if(!obj.isNull("battery"))
+                    {
+                        Log.d(TAG, "New data arrived");
+                        String temp = String.format(Locale.ENGLISH, "Temperature : %.1f \u00B0C", obj.getDouble("temperature"));
+                        Log.d(TAG, temp);
+                        String hum = String.format(Locale.ENGLISH,"Humidity : %.1f", obj.getDouble("humidity"));
+                        Log.d(TAG, hum);
+                        String lum = String.format(Locale.ENGLISH,"Luminance : %.1f", obj.getDouble("luminance"));
+                        Log.d(TAG, lum);
+                        String mot = String.format(Locale.ENGLISH,"Motion : %s", obj.getString("motion"));
+                        Log.d(TAG, mot);
+                        Temperature_Text.setText(temp);
+                        Temperature_Text.postInvalidate();
+                        Humidity_Text.setText(hum);
+                        Humidity_Text.postInvalidate();
+                        Luminance_Text.setText(lum);
+                        Luminance_Text.postInvalidate();
+                        Motion_Text.setText(mot);
+                        Motion_Text.postInvalidate();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        /***
+         * Network functions
+         */
+        Network_Add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressDialog = new ProgressDialog(MainActivity.this, "Adding new device");
+                progressDialog.show();
+                zwaveRequest.networkAddNode();
+
+            }
+        });
+
+        Network_Remove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressDialog = new ProgressDialog(MainActivity.this, "Removing device");
+                progressDialog.show();
+                zwaveRequest.networkRemoveNode();
+            }
+        });
+
+        Network_Reset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressDialog = new ProgressDialog(MainActivity.this, "Resetting network");
+                progressDialog.show();
+                zwaveRequest.networkReset();
+            }
+        });
 
     }
 

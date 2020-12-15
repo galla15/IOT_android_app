@@ -12,9 +12,9 @@
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:weightSum="4"
+        tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="29dp"
-        tools:ignore="MissingConstraints">
+        tools:layout_editor_absoluteY="29dp">
 
         <TextView
             android:id="@+id/PositionText"
@@ -83,62 +83,137 @@
 
         </LinearLayout>
 
+
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:background="#2F000000"
             android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/temperatureText"
+                    android:id="@+id/textView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:text="Temperature : ??? °C"
-                    android:textSize="18sp" />
+                    android:text="Sensor telemetry"
+                    android:textSize="24sp" />
 
-                <TextView
-                    android:id="@+id/humidityText"
+                <Switch
+                    android:id="@+id/sensorMeanSwitch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="15dp"
-                    android:text="Humidity : ??? %"
-                    android:textSize="18sp" />
-
+                    android:layout_marginStart="20dp"
+                    android:text="Mean"
+                    android:textSize="24sp" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/luminanceText"
+                <ImageView
+                    android:id="@+id/SensorStatusImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="sans-serif"
-                    android:text="Luminance : ???"
-                    android:textSize="18sp"/>
+                    app:srcCompat="@drawable/ic_status_offline" />
 
-                <TextView
-                    android:id="@+id/motionText"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="15dp"
-                    android:textSize="18sp"
-                    android:text="Motion : ???" />
+                    android:background="#B9F3EEEE"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="10dp"
+                    android:paddingStart="10dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/temperatureText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif"
+                            android:text="Temperature(°C) : "
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/temperatureData"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif"
+                            android:text="00.0"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/humidityText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Humidity(%) : "
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/humidityData"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="00.0"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/luminanceText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif"
+                            android:text="Luminance(lm) : "
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/luminanceData"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif"
+                            android:text="000.0"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/motionText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="15dp"
+                            android:layout_weight="1"
+                            android:text="Motion : "
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/motionData"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="False"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
             </LinearLayout>
-
         </LinearLayout>
-
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -164,18 +239,24 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Light control : "
-                        android:textSize="24dp" />
+                        android:textSize="24sp" />
 
 
-                    <EditText
-                        android:id="@+id/LightAddrText"
+                    <TextView
+                        android:id="@+id/LightValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:ems="5"
-                        android:inputType="textPersonName"
-                        android:text="Room"
-                        android:textSize="20dp" />
+                        android:text="Value"
+                        android:textSize="20sp" />
+
+                    <ImageView
+                        android:id="@+id/LightStatusImageView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxWidth="10dp"
+                        app:srcCompat="@drawable/ic_status_offline" />
 
                 </LinearLayout>
 

@@ -3,6 +3,7 @@ package com.example.iot_hes.iotlab;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -20,6 +21,8 @@ public class KNXRequest {
     private final String write_topic = "knx_commands";
     private final String read_sub = "knx_data_sub";
     private PubSub client;
+    private final rooms Room = rooms.BEDROOM;
+    private final String [] roomsNames ={"Living room", "Bedroom"};
 
     public KNXRequest(Context context, EventHandler cb)
     {
@@ -27,69 +30,64 @@ public class KNXRequest {
         client.subscribe(read_sub, cb);
     }
 
-    public void open_blinds(String addr)
+    private void publish(String payload, rooms R, Toast t)
     {
-        String payload = "blind open " + addr;
-        try {
-            client.publish(write_topic, payload);
-        } catch (InterruptedException e) {
-            Log.d(TAG, "Failed to publish");
-            e.printStackTrace();
+        if(!checkRoom(R))
+        {
+            t.setText("You must move to Room : " + roomsNames[this.Room.ordinal()]);
+            t.show();
+        }
+        else
+        {
+            try {
+                client.publish(write_topic, payload);
+            }
+            catch (InterruptedException e) {
+                Log.d(TAG, "Failed to publish");
+                e.printStackTrace();
+            }
         }
     }
 
-    public void close_blinds(String addr)
+    private boolean checkRoom(rooms R)
+    {
+        return this.Room == R;
+    }
+
+    public void open_blinds(String addr, rooms R, Toast t)
+    {
+
+        String payload = "blind open " + addr;
+        publish(payload, R, t);
+    }
+
+    public void close_blinds(String addr, rooms R, Toast t)
     {
         String payload = "blind close " + addr;
-        try {
-            client.publish(write_topic, payload);
-        } catch (InterruptedException e) {
-            Log.d(TAG, "Failed to publish");
-            e.printStackTrace();
-        }
+        publish(payload, R, t);
     }
 
-    public void set_blinds(String addr, String value)
+    public void set_blinds(String addr, String value, rooms R, Toast t)
     {
         String payload = "blind set " + addr + " " + value;
-        try {
-            client.publish(write_topic, payload);
-        } catch (InterruptedException e) {
-            Log.d(TAG, "Failed to publish");
-            e.printStackTrace();
-        }
+        publish(payload, R, t);
     }
 
-    public void get_blinds(String addr)
+    public void get_blinds(String addr, rooms R, Toast t)
     {
         String payload = "blind get " + addr;
-        try {
-            client.publish(write_topic, payload);
-        } catch (InterruptedException e) {
-            Log.d(TAG, "Failed to publish");
-            e.printStackTrace();
-        }
+        publish(payload, R, t);
     }
 
-    public void set_radiator(String addr, String value)
+    public void set_radiator(String addr, String value, rooms R, Toast t)
     {
         String payload = "valve set " + addr + " " + value;
-        try {
-            client.publish(write_topic, payload);
-        }catch (InterruptedException e){
-            Log.d(TAG, "Failed to publish");
-            e.printStackTrace();
-        }
+        publish(payload, R, t);
     }
 
-    public void get_radiator(String addr)
+    public void get_radiator(String addr, rooms R, Toast t)
     {
         String payload = "valve get " + addr;
-        try {
-            client.publish(write_topic, payload);
-        } catch (InterruptedException e) {
-            Log.d(TAG, "Failed to publish");
-            e.printStackTrace();
-        }
+        publish(payload, R, t);
     }
 }

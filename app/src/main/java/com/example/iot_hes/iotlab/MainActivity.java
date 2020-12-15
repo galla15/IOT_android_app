@@ -11,7 +11,10 @@ import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,10 +37,11 @@ import com.estimote.coresdk.service.BeaconManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+enum rooms{LIVING_ROOM, BEDROOM};
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "IoTLab";
     private static final String VERSION = "0.1.9";
-    private static final String URL = "http://192.168.1.125";
 
     TextView PositionText;
     EditText Percentage;
@@ -45,8 +49,11 @@ public class MainActivity extends AppCompatActivity {
     Button   DecrButton;
 
     //ZWave
-    Button   LightButton_ON;
-    Button   LightButton_OFF;
+    Button LightButton_ON;
+    Button LightButton_OFF;
+    Button LightButton_Set;
+    Button LightButton_Get;
+    TextView LightValue_Text;
     Button Network_Add;
     Button Network_Remove;
     Button Network_Reset;
@@ -54,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     TextView Humidity_Text;
     TextView Luminance_Text;
     TextView Motion_Text;
+    ImageView DimmerStatus_Image;
+    ImageView SensorStatus_Image;
+    Switch SensorSwitch_Mean;
 
     //KNX
     Button StoreButton_OPEN;
@@ -83,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private BeaconRegion region;
 
     // private static Map<Integer, String> rooms;
-    static String currentRoom;
+    static int currentRoom;
 
     private RequestQueue queue;
 
@@ -96,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog progressDialog;
     private Toast toast;
+
+    private final int beacon_bedRoom = 19793;
+    private final int beacon_livingRoom = 33567;
+
+    private final String [] roomsNames ={"Living room", "Bedroom"};
+    private rooms actualRoom;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,15 +139,21 @@ public class MainActivity extends AppCompatActivity {
         IncrButton     =  findViewById(R.id.IncrButton);
         DecrButton     =  findViewById(R.id.DecrButton);
 
-
         LightButton_ON = findViewById(R.id.LightButtonOn);
+        LightButton_OFF = findViewById(R.id.LightButtonOff);
+        LightButton_Get = findViewById(R.id.LightButtonGet);
+        LightButton_Set = findViewById(R.id.LightButtonSet);
         Network_Add = findViewById(R.id.ZwaveButtonAdd);
         Network_Remove = findViewById(R.id.ZwaveButtonRemove);
         Network_Reset = findViewById(R.id.ZwaveButtonReset);
-        Temperature_Text = findViewById(R.id.temperatureText);
-        Humidity_Text = findViewById(R.id.humidityText);
-        Luminance_Text = findViewById(R.id.luminanceText);
-        Motion_Text = findViewById(R.id.motionText);
+        Temperature_Text = findViewById(R.id.temperatureData);
+        Humidity_Text = findViewById(R.id.humidityData);
+        Luminance_Text = findViewById(R.id.luminanceData);
+        Motion_Text = findViewById(R.id.motionData);
+        DimmerStatus_Image = findViewById(R.id.LightStatusImageView);
+        SensorStatus_Image = findViewById(R.id.SensorStatusImage);
+        SensorSwitch_Mean = findViewById(R.id.sensorMeanSwitch);
+        LightValue_Text = findViewById(R.id.LightValueText);
 
         StoreButton_OPEN = findViewById(R.id.StoreButtonOpen);
         StoreButton_Close = findViewById(R.id.StoreButtonClose);
@@ -144,7 +167,10 @@ public class MainActivity extends AppCompatActivity {
         Radiator_Addr = findViewById(R.id.RadiatorAddrText);
         Radiator_Value = findViewById(R.id.RadiatorGetTextView);
 
-        toast = Toast.makeText(getApplicationContext(), "Yo", Toast.LENGTH_LONG);
+        toast = Toast.makeText(getApplicationContext(), "Yo", Toast.LENGTH_SHORT);
+        actualRoom = rooms.BEDROOM;
+
+        final Telemetry telemetry = new Telemetry();
 
         Flags.DISABLE_BATCH_SCANNING.set(true);
         Flags.DISABLE_HARDWARE_FILTERING.set(true);
@@ -159,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
         // we want to find all of our beacons on range, so no major/minor is
         // specified. However the student's labo has assigned a given major
         region = new BeaconRegion(TAG, UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"),
-                                  30874,    // major -- for the students it should be the assigned one 17644
+                                  47039,    // major -- for the students it should be the assigned one 17644
                                   null      // minor
                                   );
         beaconManager = new BeaconManager(this);
@@ -173,8 +199,19 @@ public class MainActivity extends AppCompatActivity {
 
                     if (!list.isEmpty()) {
                         Beacon nearestBeacon = list.get(0);
-                        currentRoom = Integer.toString(nearestBeacon.getMinor());
-                        String msg = "Room " +  currentRoom + "\n(major ID " +
+                        currentRoom = nearestBeacon.getMinor();
+                        switch (currentRoom)
+                        {
+                            case beacon_livingRoom:
+                                actualRoom = rooms.LIVING_ROOM;
+                                break;
+
+                            case beacon_bedRoom:
+                                actualRoom = rooms.BEDROOM;
+                                break;
+
+                        }
+                        String msg = "Room : " +  roomsNames[actualRoom.ordinal()] + "\n(major ID " +
                             Integer.toString(nearestBeacon.getMajor()) + ")";
                         Log.d(TAG, msg);
                         PositionText.setText(msg);
@@ -223,16 +260,18 @@ public class MainActivity extends AppCompatActivity {
                     if(!obj.isNull("blind"))
                     {
                         value = obj.getInt("blind");
-                        Store_Value.setText(String.format("%d", value));
+                        Store_Value.setText(String.format(Locale.ENGLISH,"%d", value));
+                        Store_Value.postInvalidate();
                     }
                     else if(!obj.isNull("valve"))
                     {
                         value = obj.getInt("valve");
-                        Radiator_Value.setText(String.format("%d", value));
+                        Radiator_Value.setText(String.format(Locale.ENGLISH,"%d", value));
+                        Radiator_Value.postInvalidate();
                     }
                     else
                     {
-                        Log.d(TAG, "Object not reconized : " + obj.toString());
+                        Log.d(TAG, "Object not recognized : " + obj.toString());
                     }
 
                 } catch (JSONException e) {
@@ -245,28 +284,28 @@ public class MainActivity extends AppCompatActivity {
         StoreButton_OPEN.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                knxRequest.open_blinds(Store_Addr.getText().toString());
+                knxRequest.open_blinds(Store_Addr.getText().toString(), actualRoom, toast);
             }
         });
 
         StoreButton_Close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                knxRequest.close_blinds(Store_Addr.getText().toString());
+                knxRequest.close_blinds(Store_Addr.getText().toString(), actualRoom, toast);
             }
         });
 
         StoreButton_Set.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                knxRequest.set_blinds(Store_Addr.getText().toString(), Percentage.getText().toString());
+                knxRequest.set_blinds(Store_Addr.getText().toString(), Percentage.getText().toString(), actualRoom, toast);
             }
         });
 
         StoreButton_Get.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                knxRequest.get_blinds(Store_Addr.getText().toString());
+                knxRequest.get_blinds(Store_Addr.getText().toString(), actualRoom, toast);
             }
         });
 
@@ -277,14 +316,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int value = Integer.parseInt(Percentage.getText().toString());
                 value = (int)(((float)value / 100) * 255);
-                knxRequest.set_radiator(Radiator_Addr.getText().toString(), String.valueOf(value));
+                knxRequest.set_radiator(Radiator_Addr.getText().toString(), String.valueOf(value), actualRoom, toast);
             }
         });
 
         RadiatorButton_Get.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                knxRequest.get_radiator(Store_Addr.getText().toString());
+                knxRequest.get_radiator(Radiator_Addr.getText().toString(), actualRoom, toast);
             }
         });
 
@@ -296,7 +335,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleEvent(String msg) {
                 Log.d(TAG, msg);
+                boolean showToast = true;
                 try{
+                    String res;
                     JSONObject obj = new JSONObject(msg);
                     if(!obj.isNull("cmd"))
                     {
@@ -304,43 +345,117 @@ public class MainActivity extends AppCompatActivity {
                         switch (obj.getString("cmd"))
                         {
                             case "Add":
-                                toast.setText("Node added : " + obj.getString("Result"));
+                                res = obj.getString("Result");
+                                toast.setText("Node added! " + res);
+                                if(res.contains("Dimmer added : Ok"))
+                                {
+                                    DimmerStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_online));
+                                }
+                                if(res.contains("Sensor added : Ok"))
+                                {
+                                    SensorStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_online));
+                                }
                                 break;
                             case "Remove":
-                                toast.setText("Node remove : " + obj.getString("Result"));
+                                res = obj.getString("Result");
+                                toast.setText("Node removed! " + res);
+                                if(res.contains("Dimmer removed : Ok"))
+                                {
+                                    DimmerStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_offline));
+                                }
+                                if(res.contains("Sensor removed : Ok"))
+                                {
+                                    SensorStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_offline));
+                                }
                                 break;
                             case "Reset":
                                 toast.setText("Network Reset : " + obj.getString("Result"));
                                 break;
+
+                            case "Info":
+                                if(!obj.isNull("Result"))
+                                {
+                                    JSONObject data = obj.getJSONObject("Result");
+                                    String devices = data.toString();
+                                    String toast_msg = "Network devices : ";
+                                    if(devices.contains("Unknown"))
+                                    {
+                                        DimmerStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_online));
+                                        toast_msg += "Dimmer";
+                                    }
+                                    else
+                                    {
+                                        DimmerStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_offline));
+                                        toast_msg += "None";
+                                    }
+
+                                    if(devices.contains("MultiSensor 6"))
+                                    {
+                                        SensorStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_online));
+                                        toast_msg += ", Sensor";
+                                    }
+                                    else
+                                    {
+                                        SensorStatus_Image.setImageDrawable(getDrawable(R.drawable.ic_status_offline));
+                                        toast_msg += ", None";
+                                    }
+
+                                    toast.setText(toast_msg);
+                                }
+                                else
+                                {
+                                    Log.d(TAG, "Info cannot read result");
+                                }
+
+                                break;
+
+                            case "dimmer get":
+                                showToast = false;
+                                if(!obj.isNull("Result"))
+                                {
+                                    String data = obj.getString("Result");
+                                    LightValue_Text.setText(data);
+                                    LightValue_Text.postInvalidate();
+                                }
+                                break;
+
                             default:
                                 toast.setText("Unknown command : " + obj.getString("cmd"));
                                 break;
                         }
 
-                        toast.show();
+                        if(showToast)toast.show();
                     }
                     else if(!obj.isNull("battery"))
                     {
-                        Log.d(TAG, "New data arrived");
-                        String temp = String.format(Locale.ENGLISH, "Temperature : %.1f \u00B0C", obj.getDouble("temperature"));
-                        Log.d(TAG, temp);
-                        String hum = String.format(Locale.ENGLISH,"Humidity : %.1f", obj.getDouble("humidity"));
-                        Log.d(TAG, hum);
-                        String lum = String.format(Locale.ENGLISH,"Luminance : %.1f", obj.getDouble("luminance"));
-                        Log.d(TAG, lum);
-                        String mot = String.format(Locale.ENGLISH,"Motion : %s", obj.getString("motion"));
-                        Log.d(TAG, mot);
-                        Temperature_Text.setText(temp);
+                        telemetry.setData(obj);
+
+                        if(!SensorSwitch_Mean.isChecked())
+                        {
+                            Temperature_Text.setText(telemetry.getTemperature());
+                            Humidity_Text.setText(telemetry.getHumidity());
+                            Luminance_Text.setText(telemetry.getLuminance());
+                        }
+                        else
+                        {
+                            Temperature_Text.setText(telemetry.getTemperatureMean());
+                            Humidity_Text.setText(telemetry.getHumidityMean());
+                            Luminance_Text.setText(telemetry.getLuminanceMean());
+                        }
+
                         Temperature_Text.postInvalidate();
-                        Humidity_Text.setText(hum);
                         Humidity_Text.postInvalidate();
-                        Luminance_Text.setText(lum);
                         Luminance_Text.postInvalidate();
-                        Motion_Text.setText(mot);
+                        Motion_Text.setText(telemetry.getMotion());
                         Motion_Text.postInvalidate();
+                    }
+                    else
+                    {
+                        Log.d(TAG, "No command found in msg : " + msg);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    Log.d(TAG, e.getMessage());
                 }
             }
         });
@@ -350,29 +465,86 @@ public class MainActivity extends AppCompatActivity {
          */
         Network_Add.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                progressDialog = new ProgressDialog(MainActivity.this, "Adding new device");
-                progressDialog.show();
-                zwaveRequest.networkAddNode();
-
+            public void onClick(View v)  {
+                if(zwaveRequest.networkAddNode(actualRoom, toast))
+                {
+                    progressDialog = new ProgressDialog(MainActivity.this, "Adding new device");
+                    progressDialog.show();
+                }
             }
         });
 
         Network_Remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressDialog = new ProgressDialog(MainActivity.this, "Removing device");
-                progressDialog.show();
-                zwaveRequest.networkRemoveNode();
+                if(zwaveRequest.networkRemoveNode(actualRoom, toast))
+                {
+                    progressDialog = new ProgressDialog(MainActivity.this, "Removing device");
+                    progressDialog.show();
+                }
             }
         });
 
         Network_Reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressDialog = new ProgressDialog(MainActivity.this, "Resetting network");
-                progressDialog.show();
-                zwaveRequest.networkReset();
+                if(zwaveRequest.networkReset(actualRoom, toast))
+                {
+                    progressDialog = new ProgressDialog(MainActivity.this, "Resetting network");
+                    progressDialog.show();
+                }
+            }
+        });
+
+        LightButton_ON.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zwaveRequest.dimmerOn(actualRoom, toast);
+            }
+        });
+
+        LightButton_OFF.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zwaveRequest.dimmerOff(actualRoom, toast);
+            }
+        });
+
+        LightButton_Set.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zwaveRequest.dimmerSet(Percentage.getText().toString(), actualRoom, toast);
+            }
+        });
+
+        LightButton_Get.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zwaveRequest.dimmerGet(actualRoom, toast);
+            }
+        });
+
+        SensorSwitch_Mean.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked)
+                {
+                    Temperature_Text.setText(telemetry.getTemperatureMean());
+                    Humidity_Text.setText(telemetry.getHumidityMean());
+                    Luminance_Text.setText(telemetry.getLuminanceMean());
+                }
+                else
+                {
+                    Temperature_Text.setText(telemetry.getTemperature());
+                    Humidity_Text.setText(telemetry.getHumidity());
+                    Luminance_Text.setText(telemetry.getLuminance());
+                }
+
+                Temperature_Text.postInvalidate();
+                Humidity_Text.postInvalidate();
+                Luminance_Text.postInvalidate();
+                Motion_Text.setText(telemetry.getMotion());
+                Motion_Text.postInvalidate();
             }
         });
 
@@ -395,6 +567,14 @@ public class MainActivity extends AppCompatActivity {
                 beaconManager.startRanging(region);
             }
         });
+        actualRoom = rooms.BEDROOM;
+        if(zwaveRequest.networkInfo(actualRoom, toast))
+        {
+            progressDialog = new ProgressDialog(MainActivity.this, "Scanning network");
+            progressDialog.show();
+        }
+
+
     }
 
 

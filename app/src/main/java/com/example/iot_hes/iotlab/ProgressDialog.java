@@ -12,7 +12,7 @@ This class provides a loading window
 class ProgressDialog {
 
     private AlertDialog.Builder builder;
-    private View layoutInflater = null;
+    private View layoutInflater;
     private TextView messageTextView;
     private AlertDialog progressDialog;
     private boolean running = false;
@@ -36,8 +36,11 @@ class ProgressDialog {
 
     public void stop()
     {
-        running = false;
-        progressDialog.dismiss();
+        if(running)
+        {
+            running = false;
+            progressDialog.dismiss();
+        }
     }
 }
 

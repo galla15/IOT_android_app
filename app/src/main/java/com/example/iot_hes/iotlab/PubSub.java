@@ -133,6 +133,18 @@ public class PubSub implements MessageReceiver {
         //subscriber.awaitTerminated();
     }
 
+    public void pause()
+    {
+        subscriber.stopAsync();
+        subscriber.awaitTerminated();
+    }
+
+    public void resume()
+    {
+        if(!subscriber.isRunning())
+            subscriber.startAsync().awaitRunning();
+    }
+
     @Override
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
         Log.d(TAG, "Received :" + message.getData().toStringUtf8());

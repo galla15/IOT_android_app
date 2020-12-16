@@ -56,6 +56,17 @@ public class ZWaveRequest {
         return checkRoom(R);
     }
 
+    private void simplePublish(String payload)
+    {
+        try {
+            client.publish(write_topic, payload);
+        }
+        catch (InterruptedException e) {
+            Log.d(TAG, "Failed to publish");
+            e.printStackTrace();
+        }
+    }
+
     private boolean checkRoom(rooms R)
     {
         return this.Room == R;
@@ -107,6 +118,18 @@ public class ZWaveRequest {
     {
         String payload = "dimmer get";
         publish(payload, R, t);
+    }
+
+    public void rulesOn()
+    {
+        String payload = "rules on";
+        simplePublish(payload);
+    }
+
+    public void rulesOff()
+    {
+        String payload = "rules off";
+        simplePublish(payload);
     }
 
 }

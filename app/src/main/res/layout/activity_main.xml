@@ -34,7 +34,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="horizontal"
-            android:weightSum="10">
+            android:weightSum="11">
 
             <EditText
                 android:id="@+id/Percentage"
@@ -47,39 +47,47 @@
                 android:maxLength="3"
                 android:text="50"
                 android:textCursorDrawable="@color/colorPrimary"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 tools:backgroundTint="?android:attr/colorBackground" />
 
             <TextView
                 android:id="@+id/editText2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
                 android:layout_weight="1"
                 android:text="%"
-                android:textSize="30sp" />
+                android:layout_marginEnd="15dp"
+                android:textSize="26sp" />
 
             <Button
                 android:id="@+id/IncrButton"
-                android:layout_width="wrap_content"
+                android:layout_width="68dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="?android:attr/textColorHighlight"
                 android:text="+"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 android:textStyle="italic"
                 tools:textColor="@color/colorPrimaryDark" />
 
             <Button
                 android:id="@+id/DecrButton"
-                android:layout_width="wrap_content"
+                android:layout_width="68dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="?android:attr/textColorHighlight"
                 android:text="-"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 android:textStyle="italic"
                 tools:textColor="@color/colorPrimaryDark" />
+
+            <Switch
+                android:id="@+id/RulesSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:paddingStart="10dp"
+                android:text="Rules" />
 
         </LinearLayout>
 
@@ -108,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
                     android:text="Mean"
-                    android:textSize="24sp" />
+                    android:textSize="20sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -180,7 +188,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif"
-                            android:text="Luminance(lm) : "
+                            android:text="Luminance(lux) : "
                             android:textSize="14sp" />
 
                         <TextView
@@ -190,6 +198,7 @@
                             android:layout_weight="1"
                             android:fontFamily="sans-serif"
                             android:text="000.0"
+                            android:ems="5"
                             android:textSize="14sp" />
 
                         <TextView

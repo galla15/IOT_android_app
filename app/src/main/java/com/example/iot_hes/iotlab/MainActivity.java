@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     EditText Percentage;
     Button   IncrButton;
     Button   DecrButton;
+    Switch RulesSwitch;
 
     //ZWave
     Button LightButton_ON;
@@ -138,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
         Percentage     =  findViewById(R.id.Percentage);
         IncrButton     =  findViewById(R.id.IncrButton);
         DecrButton     =  findViewById(R.id.DecrButton);
+        RulesSwitch = findViewById(R.id.RulesSwitch);
 
         LightButton_ON = findViewById(R.id.LightButtonOn);
         LightButton_OFF = findViewById(R.id.LightButtonOff);
@@ -259,13 +262,13 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject obj = new JSONObject(msg);
                     if(!obj.isNull("blind"))
                     {
-                        value = obj.getInt("blind");
+                        value = obj.getInt("blind") *100 / 255;
                         Store_Value.setText(String.format(Locale.ENGLISH,"%d", value));
                         Store_Value.postInvalidate();
                     }
                     else if(!obj.isNull("valve"))
                     {
-                        value = obj.getInt("valve");
+                        value = obj.getInt("valve") * 100 / 255;
                         Radiator_Value.setText(String.format(Locale.ENGLISH,"%d", value));
                         Radiator_Value.postInvalidate();
                     }
@@ -545,6 +548,14 @@ public class MainActivity extends AppCompatActivity {
                 Luminance_Text.postInvalidate();
                 Motion_Text.setText(telemetry.getMotion());
                 Motion_Text.postInvalidate();
+            }
+        });
+
+        RulesSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) zwaveRequest.rulesOn();
+                else zwaveRequest.rulesOff();
             }
         });
 

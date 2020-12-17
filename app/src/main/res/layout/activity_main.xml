@@ -198,7 +198,7 @@
                             android:layout_weight="1"
                             android:fontFamily="sans-serif"
                             android:text="000.0"
-                            android:ems="5"
+                            android:maxLength="5"
                             android:textSize="14sp" />
 
                         <TextView
